@@ -1,44 +1,46 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Menu, X, User, Settings, LogOut, Bell } from 'lucide-react';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const navigationItems = [
-    { name: 'Dashboard', href: '#', current: true },
-    { name: 'Tasks', href: '#', current: false },
-    { name: 'Projects', href: '#', current: false },
-    { name: 'Analytics', href: '#', current: false },
+    { name: 'Dashboard', href: '/', current: location.pathname === '/' },
+    { name: 'Tasks', href: '/tasks', current: location.pathname === '/tasks' },
+    { name: 'Projects', href: '/projects', current: location.pathname === '/projects' },
+    { name: 'Analytics', href: '/analytics', current: location.pathname === '/analytics' },
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <nav className="mb-8 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and brand */}
           <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">AT</span>
               </div>
               <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
                 AI Task App
               </span>
-            </div>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               {navigationItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                     item.current
                       ? 'bg-primary text-primary-foreground'
@@ -46,7 +48,7 @@ const Navbar = () => {
                   }`}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -113,9 +115,9 @@ const Navbar = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 dark:bg-gray-800 rounded-lg mt-2">
               {navigationItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                     item.current
                       ? 'bg-primary text-primary-foreground'
@@ -124,7 +126,7 @@ const Navbar = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
               
               {/* Mobile User Actions */}
