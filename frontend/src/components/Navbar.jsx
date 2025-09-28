@@ -29,8 +29,8 @@ const Navbar = () => {
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">AT</span>
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
-                AI Task App
+              <span className="ml-3 text-xl font-bold text--900 dark:text-white">
+                Tasko AI
               </span>
             </Link>
           </div>

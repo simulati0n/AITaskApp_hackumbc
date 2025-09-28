@@ -36,9 +36,10 @@ export default function FactsAndQuotes() {
                         the road to achieving your dreams, you must apply discipline, but more importantly, consistency."
                     </p>
                     <div className="flex justify-center">
-                    <footer className="text-lg text-gray-600 dark:text-gray-400">
+                    <footer className=" text-lg text-gray-600 dark:text-gray-400">
                         — Denzel Washington
                     </footer>
+                    <img className="ml-10 w-27 h-25 rounded-full" src="/denzel-washington.jpg" alt="Denzel Washington" />
                     </div>
                 </blockquote>
             </div>
