@@ -13,9 +13,7 @@ const Navbar = () => {
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', current: location.pathname === '/' },
-    { name: 'Tasks', href: '/tasks', current: location.pathname === '/tasks' },
-    { name: 'Projects', href: '/projects', current: location.pathname === '/projects' },
-    { name: 'Analytics', href: '/analytics', current: location.pathname === '/analytics' },
+    { name: 'Tasks', href: '/tasks', current: location.pathname === '/tasks' }
   ];
 
   return (

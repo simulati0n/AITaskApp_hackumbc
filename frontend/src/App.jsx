@@ -11,8 +11,6 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/tasks" element={<TaskPage />} />
-          <Route path="/projects" element={<TaskPage />} />
-          <Route path="/analytics" element={<TaskPage />} />
         </Routes>
       </div>
     </Router>

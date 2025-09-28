@@ -5,6 +5,7 @@ import { Input } from '../components/ui/input';
 import TaskCalendarDisplay from '../components/TaskCalendarDisplay';
 import { Menu, X, Target, Plus } from 'lucide-react';
 import moment from 'moment';
+import { supabase } from '../lib/supabase';
 
 export default function TaskPage() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -30,10 +31,18 @@ export default function TaskPage() {
 
     const loadTasks = async () => {
         try {
-            // Load from localStorage instead of API
-            const savedTasks = localStorage.getItem('tasks');
-            const data = savedTasks ? JSON.parse(savedTasks) : [];
-            setTasks(data);
+            // 📊 READ: Load from Supabase instead of localStorage
+            const { data, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Supabase load error:', error);
+                throw error;
+            }
+
+            setTasks(data || []);
         } catch (error) {
             console.error('Failed to load tasks:', error);
             setTasks([]);
@@ -42,21 +51,27 @@ export default function TaskPage() {
 
     const createTask = async (task) => {
         try {
-            // Create task locally
-            const newTask = {
-                ...task,
-                id: Date.now(), // Simple ID generation
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                is_completed: false
-            };
-            
-            const currentTasks = [...tasks, newTask];
-            setTasks(currentTasks);
-            
-            // Save to localStorage
-            localStorage.setItem('tasks', JSON.stringify(currentTasks));
-            
+            // ➕ CREATE: Save to Supabase instead of localStorage
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert([{
+                    title: task.title,
+                    description: task.description,
+                    start_time: task.start_time,
+                    end_time: task.end_time,
+                    category: task.category,
+                    priority: task.priority,
+                    is_completed: false
+                }])
+                .select();
+
+            if (error) {
+                console.error('Supabase insert error:', error);
+                throw error;
+            }
+
+            // Reload tasks to get the latest data
+            await loadTasks();
             return true;
         } catch (err) {
             console.error('createTask error', err);
@@ -67,14 +82,28 @@ export default function TaskPage() {
 
     const updateTask = async (taskId, updatedData) => {
         try {
-            const updatedTasks = tasks.map(task => 
-                task.id === taskId 
-                    ? { ...task, ...updatedData, updated_at: new Date().toISOString() }
-                    : task
-            );
-            
-            setTasks(updatedTasks);
-            localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            // 📝 UPDATE: Update in Supabase instead of localStorage
+            const { data, error } = await supabase
+                .from('tasks')
+                .update({
+                    title: updatedData.title,
+                    description: updatedData.description,
+                    start_time: updatedData.start_time,
+                    end_time: updatedData.end_time,
+                    category: updatedData.category,
+                    priority: updatedData.priority,
+                    is_completed: updatedData.is_completed
+                })
+                .eq('id', taskId)
+                .select();
+
+            if (error) {
+                console.error('Supabase update error:', error);
+                throw error;
+            }
+
+            // Reload tasks to get the latest data
+            await loadTasks();
             return true;
         } catch (err) {
             console.error('updateTask error', err);
@@ -85,9 +114,19 @@ export default function TaskPage() {
 
     const deleteTask = async (taskId) => {
         try {
-            const updatedTasks = tasks.filter(task => task.id !== taskId);
-            setTasks(updatedTasks);
-            localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            // 🗑️ DELETE: Remove from Supabase instead of localStorage
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', taskId);
+
+            if (error) {
+                console.error('Supabase delete error:', error);
+                throw error;
+            }
+
+            // Reload tasks to get the latest data
+            await loadTasks();
             return true;
         } catch (err) {
             console.error('deleteTask error', err);

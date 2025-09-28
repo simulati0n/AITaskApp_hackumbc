@@ -60,7 +60,7 @@ const TaskCalendar = () => {
     }
   };
 
-  // Handle AI scheduling
+ 
   const handleAiSchedule = async () => {
     setAiLoading(true);
     try {
@@ -81,7 +81,7 @@ const TaskCalendar = () => {
       alert(`✅ AI scheduled ${result.scheduledTasks.length} tasks successfully!
 ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be scheduled due to conflicts.` : ''}`);
       
-      // Reload events to show new AI-scheduled tasks
+      
       await loadEvents();
       
     } catch (error) {
@@ -92,7 +92,6 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     }
   };
 
-  // Event style customization based on category
   const eventStyleGetter = (event) => {
     let backgroundColor = '#3174ad';
     
@@ -116,7 +115,7 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     };
   };
 
-  // External navigation handlers for Prev/Next/Today
+  
   const handleViewChange = (view) => {
     setCurrentView(view);
   };
@@ -139,7 +138,7 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
 
   // Modal state for adding/editing events
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+  const [modalMode, setModalMode] = useState('create'); 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -229,7 +228,6 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     setShowModal(true);
   };
 
-  // Handle form submission
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     
@@ -248,7 +246,6 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     }
   };
 
-  // Handle delete
   const handleDelete = async () => {
     if (!selectedEvent) return;
     
@@ -265,7 +262,6 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     }
   };
 
-  // Close modal
   const closeModal = () => {
     setShowModal(false);
     setSelectedEvent(null);
