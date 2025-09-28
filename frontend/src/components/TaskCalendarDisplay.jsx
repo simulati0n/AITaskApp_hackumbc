@@ -8,6 +8,8 @@ const localizer = momentLocalizer(moment);
 
 const TaskCalendarDisplay = ({ tasks, onEditTask }) => {
   const [events, setEvents] = useState([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState('week');
 
   // Convert tasks to calendar events whenever tasks prop changes
   useEffect(() => {
@@ -83,6 +85,31 @@ const TaskCalendarDisplay = ({ tasks, onEditTask }) => {
     }
   };
 
+  // Navigation handlers
+  const navigateDate = (action) => {
+    if (action === 'TODAY') {
+      setCurrentDate(new Date());
+      return;
+    }
+
+    let unit = 'week';
+    if (currentView === 'month') unit = 'month';
+    else if (currentView === 'day') unit = 'day';
+    else if (currentView === 'agenda') unit = 'week';
+
+    const delta = action === 'NEXT' ? 1 : -1;
+    const newDate = moment(currentDate).add(delta, unit).toDate();
+    setCurrentDate(newDate);
+  };
+
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+  };
+
+  const handleNavigate = (date) => {
+    setCurrentDate(date);
+  };
+
   return (
     <div className="space-y-4">
       {/* Legend */}
@@ -123,10 +150,13 @@ const TaskCalendarDisplay = ({ tasks, onEditTask }) => {
               events={events}
               startAccessor="start"
               endAccessor="end"
+              date={currentDate}
+              view={currentView}
+              onView={handleViewChange}
+              onNavigate={handleNavigate}
               style={{ height: '100%' }}
               eventPropGetter={eventStyleGetter}
               views={['month', 'week', 'day', 'agenda']}
-              defaultView="week"
               popup
               tooltipAccessor={(event) => 
                 `${event.title}\n${event.resource?.description || ''}\nPriority: ${event.resource?.priority || 'medium'}`
