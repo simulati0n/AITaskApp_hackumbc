@@ -8,6 +8,7 @@ import { Menu, X, Target, Plus } from 'lucide-react';
 export default function TaskPage() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [goalInput, setGoalInput] = useState('');
+    const [goals, setGoals] = useState([]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
@@ -15,10 +16,21 @@ export default function TaskPage() {
 
     const handleAddGoal = () => {
         if (goalInput.trim()) {
-            // TODO: Implement goal addition logic
-            console.log('Adding goal:', goalInput);
+            setGoals([...goals, goalInput.trim()]);
             setGoalInput('');
         }
+    };
+
+    const handleDelete = (indexToDelete) => {
+        setGoals(goals.filter((_, index) => index !== indexToDelete));
+    };
+
+    const handleInputChange = (e) => {
+        setGoalInput(e.target.value);
+    };
+
+    const handleSend = () => {
+        handleAddGoal();
     };
 
     return (
@@ -37,34 +49,20 @@ export default function TaskPage() {
                 </div>
                 
                 {isSidebarOpen && (
-                    <div className="mt-16 p-4">
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <Target className="h-5 w-5" />
-                                    Goals
-                                </CardTitle>
-                                <CardDescription>
-                                    Track your daily objectives
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex gap-2">
-                                    <Input
-                                        placeholder="Enter new goal..."
-                                        value={goalInput}
-                                        onChange={(e) => setGoalInput(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
-                                    />
-                                    <Button size="icon" onClick={handleAddGoal}>
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                    Goals will appear here...
-                                </div>
-                            </CardContent>
-                        </Card>
+                    <div className="mt-16">
+                        <h2 className="text-xl font-bold text-black-900 dark:text-white mb-4">Goals</h2>
+                        <ul>
+                            {goals.map((goal, index) => (
+                                <li key={index} className="flex justify-between items-center text-gray-800 dark:text-gray-200 mb-2">
+                                    <span>{goal}</span>
+                                    <button onClick={() => handleDelete(index)} className="p-1 text-red-500 hover:text-red-700">
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 )}
             </div>
@@ -86,6 +84,20 @@ export default function TaskPage() {
                         <TaskCalendar />
                     </div>
                 </div>
+            </div>
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 flex items-center">
+                <input
+                    type="text"
+                    placeholder="Enter Goal"
+                    value={goalInput}
+                    onChange={handleInputChange}
+                    className="flex-grow p-3 rounded-l-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                    onClick={handleSend}
+                    className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none 
+                    focus:ring-2 focus:ring-blue-500 shadow-md"
+                > Send </button>
             </div>
         </div>
     )
