@@ -4,7 +4,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { RefreshCw, Bot, Calendar as CalendarIcon } from 'lucide-react';
+import { RefreshCw, Bot, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const localizer = momentLocalizer(moment);
 
@@ -12,6 +12,8 @@ const TaskCalendar = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState('week');
 
   // Sample tasks for AI scheduling
   const [sampleTasks] = useState([
@@ -114,6 +116,27 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     };
   };
 
+  // External navigation handlers for Prev/Next/Today
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+  };
+
+  const navigateDate = (action) => {
+    if (action === 'TODAY') {
+      setCurrentDate(new Date());
+      return;
+    }
+
+    let unit = 'week';
+    if (currentView === 'month') unit = 'month';
+    else if (currentView === 'day') unit = 'day';
+    else if (currentView === 'agenda') unit = 'week';
+
+    const delta = action === 'NEXT' ? 1 : -1;
+    const newDate = moment(currentDate).add(delta, unit).toDate();
+    setCurrentDate(newDate);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -137,6 +160,34 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
           </div>
           
           <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigateDate('PREV')}
+                className="p-2"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => navigateDate('TODAY')}
+                className="px-3 py-1"
+              >
+                Today
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => navigateDate('NEXT')}
+                className="p-2"
+                aria-label="Next"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
             <Button
               variant="outline"
               onClick={loadEvents}
@@ -211,6 +262,11 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
                 events={events}
                 startAccessor="start"
                 endAccessor="end"
+                date={currentDate}
+                view={currentView}
+                onView={(view) => handleViewChange(view)}
+                onNavigate={(date) => setCurrentDate(date)}
+                messages={{ noEventsInRange: 'No Tasks' }}
                 style={{ height: '100%' }}
                 eventPropGetter={eventStyleGetter}
                 views={['month', 'week', 'day', 'agenda']}

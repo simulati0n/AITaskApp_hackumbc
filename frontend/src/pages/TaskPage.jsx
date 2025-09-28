@@ -50,7 +50,7 @@ export default function TaskPage() {
                 
                 {isSidebarOpen && (
                     <div className="mt-16">
-                        <h2 className="text-xl font-bold text-black-900 dark:text-white mb-4">Goals</h2>
+                        <h2 className="text-xl font-bold text-black-900 dark:text-white mb-4 ml-3">Goals</h2>
                         <ul>
                             {goals.map((goal, index) => (
                                 <li key={index} className="flex justify-between items-center text-gray-800 dark:text-gray-200 mb-2">
