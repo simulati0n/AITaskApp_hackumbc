@@ -1,33 +1,31 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 const { suggestScheduleWithGemini, filterNonOverlapping } = require('./ai-scheduler');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'task_scheduler',
-  password: process.env.DB_PASSWORD || 'your_password',
-  port: process.env.DB_PORT || 5432,
-});
-
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 app.use(cors());
 app.use(express.json());
 
-
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Error connecting to database:', err);
-  } else {
-    console.log('✅ Connected to PostgreSQL database');
-    release();
+// Test Supabase connection
+(async () => {
+  try {
+    const { data, error } = await supabase.from('tasks').select('count').single();
+    if (error) throw error;
+    console.log('✅ Connected to Supabase database');
+  } catch (err) {
+    console.error('❌ Error connecting to Supabase:', err);
   }
-});
+})();
 
 // Get all tasks
 app.get('/api/tasks', async (req, res) => {
@@ -120,20 +118,23 @@ app.post('/api/ai-schedule', async (req, res) => {
       }
     }
 
-    // 1. Get existing events from database to identify busy slots
-    const result = await pool.query(`
-      SELECT id, title, start_time, end_time 
-      FROM tasks 
-      WHERE user_id = 1 AND start_time IS NOT NULL AND end_time IS NOT NULL
-      ORDER BY start_time ASC
-    `);
-    
-    const existingEvents = result.rows;
+    // 1. Get existing events from Supabase to identify busy slots
+    const { data: existingEvents, error: fetchError } = await supabase
+      .from('tasks')
+      .select('id, title, start_time, end_time')
+      .not('start_time', 'is', null)
+      .not('end_time', 'is', null)
+      .order('start_time', { ascending: true });
+
+    if (fetchError) {
+      console.error('Error fetching existing events:', fetchError);
+      throw fetchError;
+    }
     
     // Convert to busy slots format for AI
     const busySlots = existingEvents.map(event => ({
-      start: event.start_time.toISOString(),
-      end: event.end_time.toISOString()
+      start: event.start_time,
+      end: event.end_time
     }));
 
     // 2. Ask Gemini AI to suggest schedule for open slots
@@ -142,23 +143,27 @@ app.post('/api/ai-schedule', async (req, res) => {
     // 3. Server-side safety check to prevent overlaps
     const safeEvents = filterNonOverlapping(aiEvents, existingEvents);
     
-    // 4. Insert the AI-scheduled events into database
+    // 4. Insert the AI-scheduled events into Supabase
     const insertedEvents = [];
     for (const event of safeEvents) {
-      const insertResult = await pool.query(`
-        INSERT INTO tasks (user_id, title, description, start_time, end_time, category, priority)
-        VALUES (1, $1, $2, $3, $4, $5, $6)
-        RETURNING *
-      `, [
-        event.title,
-        `AI scheduled: ${event.title}`,
-        event.start,
-        event.end,
-        'ai-scheduled',
-        'medium'
-      ]);
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([{
+          title: event.title,
+          description: `AI scheduled: ${event.title}`,
+          start_time: event.start,
+          end_time: event.end,
+          category: 'ai-scheduled',
+          priority: 'medium'
+        }])
+        .select();
+
+      if (error) {
+        console.error('Error inserting AI event:', error);
+        continue;
+      }
       
-      insertedEvents.push(insertResult.rows[0]);
+      insertedEvents.push(data[0]);
     }
 
     res.json({
