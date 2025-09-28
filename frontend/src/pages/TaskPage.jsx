@@ -46,6 +46,7 @@ export default function TaskPage() {
                     </div>
                 </div>
             </div>
+            <input type = "text" placeholder = "Enter Goal" className = "fixed bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
     )
 }
