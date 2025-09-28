@@ -20,6 +20,10 @@ export default function TaskPage() {
         }
     };
 
+    const handleDelete = (indexToDelete) => {
+        setGoals(goals.filter((_, index) => index !== indexToDelete));
+    };
+
     return (
         <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Sidebar */}
@@ -36,7 +40,14 @@ export default function TaskPage() {
                         <h2 className="text-xl font-bold text-black-900 dark:text-white mb-4">Goals</h2>
                         <ul>
                             {goals.map((goal, index) => (
-                                <li key={index} className="text-gray-800 dark:text-gray-200 mb-2">{goal}</li>
+                                <li key={index} className="flex justify-between items-center text-gray-800 dark:text-gray-200 mb-2">
+                                    <span>{goal}</span>
+                                    <button onClick={() => handleDelete(index)} className="p-1 text-red-500 hover:text-red-700">
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -74,10 +85,9 @@ export default function TaskPage() {
                 />
                 <button
                     onClick={handleSend}
-                    className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
-                >
-                    Send
-                </button>
+                    className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none 
+                    focus:ring-2 focus:ring-blue-500 shadow-md"
+                > Send </button>
             </div>
         </div>
     )
