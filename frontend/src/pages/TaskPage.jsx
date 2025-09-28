@@ -158,6 +158,70 @@ export default function TaskPage() {
         handleAddGoal();
     };
 
+    // NEW: AI function to convert text input to tasks/events
+    const handleCreateTasksFromAI = async () => {
+        if (!goalInput.trim()) {
+            alert('Please enter some text to convert to tasks');
+            return;
+        }
+
+        try {
+            console.log('🤖 Sending text to AI for task creation:', goalInput);
+            
+            // Show loading state
+            const originalButtonText = document.querySelector('button').textContent;
+            const button = document.querySelector('button');
+            if (button) {
+                button.textContent = '🤖 Creating Tasks...';
+                button.disabled = true;
+            }
+            
+            const response = await fetch('http://localhost:5000/api/create-tasks-from-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    textInput: goalInput.trim() 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create tasks from text');
+            }
+
+            const data = await response.json();
+            console.log('✅ AI created tasks:', data);
+
+            // Reload tasks to show the new ones in the calendar
+            await loadTasks();
+
+            // Clear the input and show detailed success message
+            setGoalInput('');
+            
+            // Show detailed success message
+            const taskTitles = data.createdTasks.map(task => task.title).join(', ');
+            alert(`🎉 AI successfully created ${data.totalCreated} tasks:\n\n${taskTitles}\n\nCheck your calendar to see them!`);
+
+            // Reset button
+            if (button) {
+                button.textContent = originalButtonText;
+                button.disabled = false;
+            }
+
+        } catch (error) {
+            console.error('❌ Error creating tasks from AI:', error);
+            alert('Error creating tasks. Make sure your backend server is running and you have a valid Gemini API key.');
+            
+            // Reset button on error
+            const button = document.querySelector('button');
+            if (button) {
+                button.textContent = '🤖 Create Tasks';
+                button.disabled = false;
+            }
+        }
+    };
+
     const openTaskModal = () => {
         setModalMode('create');
         setSelectedTask(null);
@@ -421,16 +485,27 @@ export default function TaskPage() {
             <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 flex items-center">
                 <input
                     type="text"
-                    placeholder="Enter Goal"
+                    placeholder="Enter goal or tasks (e.g., 'Plan my wedding' or 'Meeting at 2pm, call John, gym workout')"
                     value={goalInput}
                     onChange={handleInputChange}
+                    onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                            handleCreateTasksFromAI();
+                        }
+                    }}
                     className="flex-grow p-3 rounded-l-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
-                    onClick={handleSend}
-                    className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none 
-                    focus:ring-2 focus:ring-blue-500 shadow-md"
-                > Send </button>
+                    onClick={handleCreateTasksFromAI}
+                    disabled={!goalInput.trim()}
+                    className={`p-3 text-white rounded-r-lg focus:outline-none focus:ring-2 shadow-md ${
+                        goalInput.trim() 
+                            ? 'bg-blue-500 hover:bg-blue-600 focus:ring-blue-500' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+                >
+                    🤖 Create Tasks
+                </button>
             </div>
         </div>
     )
