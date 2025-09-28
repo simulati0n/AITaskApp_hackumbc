@@ -137,6 +137,148 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
     setCurrentDate(newDate);
   };
 
+  // Modal state for adding/editing events
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    start_time: '',
+    end_time: '',
+    category: 'user',
+    priority: 'medium'
+  });
+
+  // CRUD handlers
+  const createTask = async (task) => {
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+
+      if (!res.ok) throw new Error('Failed to create task');
+      const created = await res.json();
+      return created;
+    } catch (err) {
+      console.error('createTask error', err);
+      alert('Failed to create task: ' + err.message);
+      throw err;
+    }
+  };
+
+  const updateTask = async (id, updates) => {
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+
+      if (!res.ok) throw new Error('Failed to update task');
+      const updated = await res.json();
+      return updated;
+    } catch (err) {
+      console.error('updateTask error', err);
+      alert('Failed to update task: ' + err.message);
+      throw err;
+    }
+  };
+
+  const deleteTask = async (id) => {
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete task');
+      return true;
+    } catch (err) {
+      console.error('deleteTask error', err);
+      alert('Failed to delete task: ' + err.message);
+      throw err;
+    }
+  };
+
+  // Handle slot selection (create new event)
+  const handleSelectSlot = (slotInfo) => {
+    setModalMode('create');
+    setSelectedEvent(null);
+    setFormData({
+      title: '',
+      description: '',
+      start_time: slotInfo.start.toISOString(),
+      end_time: slotInfo.end.toISOString(),
+      category: 'user',
+      priority: 'medium'
+    });
+    setShowModal(true);
+  };
+
+  // Handle event selection (edit existing event)
+  const handleSelectEvent = (event) => {
+    setModalMode('edit');
+    setSelectedEvent(event);
+    setFormData({
+      title: event.title,
+      description: event.resource?.description || '',
+      start_time: event.start.toISOString(),
+      end_time: event.end.toISOString(),
+      category: event.resource?.category || 'user',
+      priority: event.resource?.priority || 'medium'
+    });
+    setShowModal(true);
+  };
+
+  // Handle form submission
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (modalMode === 'create') {
+        await createTask(formData);
+      } else if (modalMode === 'edit') {
+        await updateTask(selectedEvent.id, formData);
+      }
+      
+      setShowModal(false);
+      await loadEvents();
+      alert(modalMode === 'create' ? 'Task created!' : 'Task updated!');
+    } catch (err) {
+      // Error already handled in createTask/updateTask
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    if (!selectedEvent) return;
+    
+    const confirmed = window.confirm('Are you sure you want to delete this task?');
+    if (!confirmed) return;
+
+    try {
+      await deleteTask(selectedEvent.id);
+      setShowModal(false);
+      await loadEvents();
+      alert('Task deleted!');
+    } catch (err) {
+      // Error already handled in deleteTask
+    }
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedEvent(null);
+    setFormData({
+      title: '',
+      description: '',
+      start_time: '',
+      end_time: '',
+      category: 'user',
+      priority: 'medium'
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -242,10 +384,6 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
                 <span>High Priority</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span>Normal</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-gray-500 rounded"></div>
                 <span>Low Priority</span>
               </div>
@@ -275,14 +413,140 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
                 tooltipAccessor={(event) => 
                   `${event.title}\n${event.resource?.description || ''}\nPriority: ${event.resource?.priority || 'medium'}`
                 }
-                onSelectEvent={(event) => {
-                  alert(`Event: ${event.title}\nDescription: ${event.resource?.description || 'No description'}\nCategory: ${event.resource?.category || 'general'}`);
-                }}
+                selectable
+                onSelectSlot={handleSelectSlot}
+                onDoubleClickSlot={handleSelectSlot}
+                onSelectEvent={handleSelectEvent}
               />
             </div>
           </CardContent>
         </Card>
       </CardContent>
+
+      {/* Task Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                {modalMode === 'create' ? 'Add New Task' : 'Edit Task'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title *</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Start Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={moment(formData.start_time).format('YYYY-MM-DDTHH:mm')}
+                    onChange={(e) => setFormData({ ...formData, start_time: new Date(e.target.value).toISOString() })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">End Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={moment(formData.end_time).format('YYYY-MM-DDTHH:mm')}
+                    onChange={(e) => setFormData({ ...formData, end_time: new Date(e.target.value).toISOString() })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="user">Personal</option>
+                    <option value="work">Work</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="ai-scheduled">AI Scheduled</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Priority</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <div>
+                  {modalMode === 'edit' && (
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {modalMode === 'create' ? 'Create Task' : 'Update Task'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
