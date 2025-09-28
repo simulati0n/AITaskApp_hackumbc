@@ -4,9 +4,9 @@ export default function FactsAndQuotes() {
     return (
         <>
             <div className="text-center px-4 py-6 sm:px-0">
-                <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">Did You Know?</h2>
+                <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-10">Did You Know?</h2>
                 <div className="max-w-3xl mx-auto">
-                    <ul className="space-y-4 text-left text-lg">
+                    <ul className="space-y-4 text-left text-2xl">
                         <li className="flex items-start">
                             <span className="flex-shrink-0 w-2 h-2 bg-primary rounded-full mt-2 mr-3"></span>
                             <p className="text-gray-600 dark:text-gray-300">About 30% of Americans set goals for New Year's Resolutions</p>
@@ -21,7 +21,7 @@ export default function FactsAndQuotes() {
                         </li>
                     </ul>
                     <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        <p className="text-md text-gray-500 dark:text-gray-400 italic">
                             Source: <a href="https://www.pewresearch.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Pew Research Center</a>
                         </p>
                     </div>
