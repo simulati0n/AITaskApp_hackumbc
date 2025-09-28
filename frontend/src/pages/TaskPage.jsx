@@ -176,7 +176,7 @@ export default function TaskPage() {
                 button.disabled = true;
             }
             
-            const response = await fetch('http://localhost:5000/api/create-tasks-from-text', {
+            const response = await fetch('https://taskoai-backend.onrender.com/api/create-tasks-from-text', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -32,7 +32,7 @@ const TaskCalendar = () => {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/tasks');
+      const response = await fetch('https://taskoai-backend.onrender.com/api/tasks');
       const tasks = await response.json();
       
       // Convert database tasks to calendar events format
@@ -64,7 +64,7 @@ const TaskCalendar = () => {
   const handleAiSchedule = async () => {
     setAiLoading(true);
     try {
-      const response = await fetch('/api/ai-schedule', {
+      const response = await fetch('https://taskoai-backend.onrender.com/api/ai-schedule', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
   // CRUD handlers
   const createTask = async (task) => {
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await fetch('https://taskoai-backend.onrender.com/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(task)
@@ -170,7 +170,7 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
 
   const updateTask = async (id, updates) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`https://taskoai-backend.onrender.com/api/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
@@ -188,7 +188,7 @@ ${result.skippedTasks > 0 ? `⚠️ ${result.skippedTasks} tasks couldn't be sch
 
   const deleteTask = async (id) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://taskoai-backend.onrender.com/api/tasks/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete task');
       return true;
     } catch (err) {

@@ -13,7 +13,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-app.use(cors());
+// CORS configuration for production
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Local development
+    'https://taskoai.pages.dev', // Your Cloudflare Pages frontend
+    /\.pages\.dev$/, // Any Cloudflare Pages domain
+    /\.onrender\.com$/ // Render domains
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Test Supabase connection
