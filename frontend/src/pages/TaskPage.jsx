@@ -2,9 +2,22 @@ import React, { useState } from 'react';
 
 export default function TaskPage() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [goals, setGoals] = useState([]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
+    };
+
+    const handleInputChange = (e) => {
+        setInputValue(e.target.value);
+    };
+
+    const handleSend = () => {
+        if (inputValue.trim()) {
+            setGoals([...goals, inputValue.trim()]);
+            setInputValue('');
+        }
     };
 
     return (
@@ -21,6 +34,11 @@ export default function TaskPage() {
                 {isSidebarOpen && (
                     <div className="mt-16">
                         <h2 className="text-xl font-bold text-black-900 dark:text-white mb-4">Goals</h2>
+                        <ul>
+                            {goals.map((goal, index) => (
+                                <li key={index} className="text-gray-800 dark:text-gray-200 mb-2">{goal}</li>
+                            ))}
+                        </ul>
                     </div>
                 )}
             </div>
@@ -46,7 +64,21 @@ export default function TaskPage() {
                     </div>
                 </div>
             </div>
-            <input type = "text" placeholder = "Enter Goal" className = "fixed bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 flex items-center">
+                <input
+                    type="text"
+                    placeholder="Enter Goal"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    className="flex-grow p-3 rounded-l-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                    onClick={handleSend}
+                    className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
+                >
+                    Send
+                </button>
+            </div>
         </div>
     )
 }
